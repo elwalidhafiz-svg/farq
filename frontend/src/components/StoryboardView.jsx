@@ -5,10 +5,11 @@ function StoryboardView({ scenes }) {
 
   return (
     <div className="storyboard" id="storyboard-export">
-      {scenes.map((scene) => (
-        <div className="scene-card" key={scene.sceneNumber}>
+      {scenes.map((scene, i) => (
+        <div className="scene-card" key={scene.sceneNumber} style={{ animationDelay: `${i * 0.08}s` }}>
           <div className="scene-header">
-            مشهد {scene.sceneNumber} — Scene {scene.sceneNumber}
+            <span className="scene-number-badge">مشهد {scene.sceneNumber}</span>
+            <span className="scene-header-title">Scene {scene.sceneNumber}</span>
           </div>
           <div className="scene-body">
             <div className="scene-descriptions">
@@ -41,12 +42,12 @@ function StoryboardView({ scenes }) {
                     </>
                   ) : (
                     <div className="image-placeholder">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <rect x="3" y="3" width="18" height="18" rx="2" />
                         <circle cx="8.5" cy="8.5" r="1.5" />
                         <path d="M21 15l-5-5L5 21" />
                       </svg>
-                      <span>Image unavailable</span>
+                      <span>غير متوفر</span>
                     </div>
                   )}
                 </div>

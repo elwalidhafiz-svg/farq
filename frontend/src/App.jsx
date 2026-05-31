@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import StoryboardView from './components/StoryboardView';
 import ExportButton from './components/ExportButton';
+import './App.css';
 
 function App() {
   const [file, setFile] = useState(null);
@@ -15,102 +16,118 @@ function App() {
       setFile(selected);
       setError('');
     } else if (selected) {
-      setError('Please select a PDF file.');
+      setError('يرجى اختيار ملف PDF فقط.');
       setFile(null);
     }
   };
 
   const handleGenerate = async () => {
-    if (!file) {
-      setError('Please select a PDF file first.');
-      return;
-    }
-
+    if (!file) { setError('يرجى اختيار ملف PDF أولاً.'); return; }
     setLoading(true);
     setError('');
     setScenes(null);
-
     try {
       const formData = new FormData();
       formData.append('pdf', file);
-
       const response = await axios.post('/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 600000, // 10 minutes — HuggingFace can be slow
+        timeout: 600000,
       });
-
       setScenes(response.data);
     } catch (err) {
-      const msg =
-        err.response?.data?.error ||
-        err.message ||
-        'An unexpected error occurred.';
-      setError(msg);
+      setError(err.response?.data?.error || err.message || 'حدث خطأ غير متوقع.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Arabic Script to Storyboard</h1>
-        <p>Upload an Arabic advertising script (PDF) to generate a visual storyboard with AI-generated images.</p>
-      </header>
+    <>
+      <div className="app-bg" />
+      <div className="floating-orb orb-1" />
+      <div className="floating-orb orb-2" />
+      <div className="floating-orb orb-3" />
 
-      <section className="upload-section">
-        <h2>Upload Script</h2>
-        <div className="file-input-wrapper">
-          <label className="file-label">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            Choose PDF File
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileChange}
-              disabled={loading}
-            />
-          </label>
+      <div className="app">
+        <header className="app-header">
+          <div className="header-badge">
+            <span>✦</span> AI Storyboard Generator
+          </div>
+          <h1>Arabic Script to Storyboard</h1>
+          <p>حوّل سكريبت إعلانك العربي إلى ستوري بورد مرئي بالذكاء الاصطناعي</p>
+        </header>
 
-          {file && (
-            <span className="file-name">{file.name}</span>
-          )}
+        <section className="upload-section">
+          <h2>ارفع السكريبت</h2>
+          <div className="file-input-wrapper">
+            <label className="file-drop-zone">
+              <div className="drop-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <span className="drop-text-main">اختر ملف PDF</span>
+              <span className="drop-text-sub">اضغط لاختيار الملف</span>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                disabled={loading}
+              />
+            </label>
 
-          <button
-            className="generate-btn"
-            onClick={handleGenerate}
-            disabled={!file || loading}
-          >
-            {loading ? 'Generating...' : 'Generate Storyboard'}
-          </button>
-        </div>
-      </section>
+            {file && (
+              <span className="file-name">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                {file.name}
+              </span>
+            )}
 
-      {error && (
-        <div className="error-box">
-          <strong>Error:</strong> {error}
-        </div>
-      )}
+            <button
+              className="generate-btn"
+              onClick={handleGenerate}
+              disabled={!file || loading}
+            >
+              {loading ? '⏳ جاري المعالجة...' : '✦ توليد الستوري بورد'}
+            </button>
+          </div>
+        </section>
 
-      {loading && (
-        <div className="loading-section">
-          <div className="spinner" />
-          <p>Processing your script... This may take several minutes while images are being generated.</p>
-        </div>
-      )}
+        {error && (
+          <div className="error-box">⚠ {error}</div>
+        )}
 
-      {scenes && !loading && (
-        <>
-          <ExportButton disabled={false} />
-          <StoryboardView scenes={scenes} />
-          <ExportButton disabled={false} />
-        </>
-      )}
-    </div>
+        {loading && (
+          <div className="loading-section">
+            <div className="loading-visual">
+              <div className="spinner-ring spinner-ring-1" />
+              <div className="spinner-ring spinner-ring-2" />
+              <div className="spinner-ring spinner-ring-3" />
+            </div>
+            <div className="loading-title">جاري معالجة السكريبت...</div>
+            <div className="loading-sub">قد يستغرق هذا بضع دقائق</div>
+            <div className="loading-steps">
+              <div className="loading-step"><div className="step-dot" /> استخراج المشاهد</div>
+              <div className="loading-step"><div className="step-dot" /> ترجمة الوصف بـ AI</div>
+              <div className="loading-step"><div className="step-dot" /> توليد الصور</div>
+            </div>
+          </div>
+        )}
+
+        {scenes && !loading && (
+          <>
+            <ExportButton />
+            <StoryboardView scenes={scenes} />
+            <ExportButton />
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
