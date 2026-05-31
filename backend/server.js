@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const axios = require('axios');
 const { parseArabicScript } = require('./utils/pdfParser');
 
@@ -14,18 +14,16 @@ app.use(cors());
 app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Convert Arabic visual description to English prompt via Claude
+// Convert Arabic visual description to English prompt via Gemini
 async function translateToEnglishPrompt(arabicText) {
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 300,
-    system:
-      'You are an expert at converting Arabic advertising script descriptions into detailed English prompts for image generation. Convert the Arabic visual description to a vivid, detailed English prompt suitable for Stable Diffusion. Focus on visual elements: composition, lighting, colors, subjects, style. Return only the English prompt, nothing else.',
-    messages: [{ role: 'user', content: arabicText }],
-  });
-  return message.content[0].text.trim();
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const prompt =
+    'You are an expert at converting Arabic advertising script descriptions into detailed English prompts for image generation. Convert the Arabic visual description to a vivid, detailed English prompt suitable for Stable Diffusion. Focus on visual elements: composition, lighting, colors, subjects, style. Return only the English prompt, nothing else.\n\nArabic description:\n' +
+    arabicText;
+  const result = await model.generateContent(prompt);
+  return result.response.text().trim();
 }
 
 // Call Hugging Face Stable Diffusion with retry logic
@@ -134,7 +132,7 @@ app.post('/api/upload', upload.single('pdf'), async (req, res) => {
         );
         console.log(`Scene ${scene.sceneNumber} English prompt: ${englishPrompt.slice(0, 80)}...`);
       } catch (claudeErr) {
-        console.error(`Claude error for scene ${scene.sceneNumber}:`, claudeErr.message);
+        console.error(`Gemini error for scene ${scene.sceneNumber}:`, claudeErr.message);
         englishPrompt = `Advertising scene ${scene.sceneNumber}, professional commercial photography, high quality`;
       }
 
